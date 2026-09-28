@@ -20,14 +20,14 @@ export const metadata: Metadata = {
     "A modern healthcare and telemedicine platform for discovering doctors, booking appointments, online consultations, and managing digital prescriptions.",
 };
 
-export default function RootLayout({
-  children,
-}: LayoutProps<"/">) {
+export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={inter.variable}>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
-        <Providers>{children}</Providers>
-        <Toaster richColors position="top-right"></Toaster>
+        <Providers>
+          {children}
+          <Toaster richColors position="top-right"></Toaster>
+        </Providers>
       </body>
     </html>
   );

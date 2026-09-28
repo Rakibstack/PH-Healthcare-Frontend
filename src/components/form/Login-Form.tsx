@@ -10,15 +10,17 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 
 import { loginSchema } from "@/validation";
-import { useLogin } from "@/hooks";
+import { useGoogleOAuth, useLogin } from "@/hooks";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { GoogleLogin } from "@react-oauth/google";
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   const { mutate: login, isPending } = useLogin();
+  const { mutate: googleLogin } = useGoogleOAuth();
 
   const form = useForm({
     defaultValues: {
@@ -37,7 +39,7 @@ export default function LoginForm() {
       };
 
       login(loginData, {
-        onSuccess: (res) => {
+        onSuccess: () => {
           toast.success("Login User Successfully");
           router.push("/");
         },
@@ -48,6 +50,29 @@ export default function LoginForm() {
       });
     },
   });
+
+  const handleGoogleSuccess = (credentialResponse: { credential?: string }) => {
+    const idToken = credentialResponse.credential;
+    if (!idToken) {
+      toast.error("Google OAuth Failed");
+      return;
+    }
+    googleLogin(
+      { idToken },
+      {
+        onSuccess: () => {
+          toast.success('Google Login Successfully')
+          router.push('/')
+        },
+        onError: (err) => {
+          toast.error(err.message || "Somethin Went Wrong. Please Try Again");
+        },
+      },
+    );
+  };
+  const handleGoogleFailed = () => {
+    toast.error("Something Went Wrong Please Try Again.");
+  };
 
   return (
     <form
@@ -179,7 +204,7 @@ export default function LoginForm() {
       </div>
 
       {/* Google */}
-      <Button
+      {/* <Button
         type="button"
         variant="outline"
         className="h-11 w-full font-medium"
@@ -203,7 +228,14 @@ export default function LoginForm() {
           />
         </svg>
         Continue with Google
-      </Button>
+      </Button> */}
+      <GoogleLogin
+        theme="outline"
+        shape="pill"
+        text="continue_with"
+        onSuccess={handleGoogleSuccess}
+        onError={handleGoogleFailed}
+      ></GoogleLogin>
     </form>
   );
 }

@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { Menu } from "lucide-react";
+import { ArrowRight, Menu, Search } from "lucide-react";
 
 import Logo from "@/components/shared/Logo";
 import { Button } from "@/components/ui/button";
+
 import {
   Sheet,
   SheetContent,
@@ -12,35 +13,35 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+
 import { useCurrentUser } from "@/hooks";
 import UserMenu from "./UserMenu";
 
 const navItems = [
   {
     label: "Doctors",
-    href: "/doctors",
-  },
-  {
-    label: "How It Works",
-    href: "#how-it-works",
+    href: "#doctors",
   },
   {
     label: "Services",
     href: "#services",
   },
   {
+    label: "How It Works",
+    href: "#how-it-works",
+  },
+  {
     label: "About",
-    href: "/about",
+    href: "#about",
   },
 ];
 
 export default function PublicHeader() {
   const { data: user, isLoading } = useCurrentUser();
-  console.log('user Data From Header',user);
-  
+
   return (
-    <header className="sticky top-0 z-50 border-b border-border/60 bg-background/85 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 border-b border-border/50 bg-background/90 backdrop-blur-xl">
+      <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Logo />
 
@@ -50,7 +51,7 @@ export default function PublicHeader() {
             <Link
               key={item.href}
               href={item.href}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              className="relative rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-primary/5 hover:text-foreground"
             >
               {item.label}
             </Link>
@@ -59,6 +60,20 @@ export default function PublicHeader() {
 
         {/* Desktop Actions */}
         <div className="hidden items-center gap-2 lg:flex">
+          {/* Find Doctor */}
+          <Link href="/doctors">
+            <Button
+              variant="ghost"
+              className="gap-2 rounded-full px-4 text-sm font-medium"
+            >
+              <Search className="size-4" />
+              Find a Doctor
+            </Button>
+          </Link>
+
+          <div className="mx-1 h-6 w-px bg-border" />
+
+          {/* Authentication */}
           {isLoading ? (
             <div className="size-9 animate-pulse rounded-full bg-muted" />
           ) : user ? (
@@ -66,57 +81,87 @@ export default function PublicHeader() {
           ) : (
             <>
               <Link href="/login">
-                <Button variant="ghost">Log in</Button>
+                <Button variant="ghost" className="rounded-full px-4">
+                  Log in
+                </Button>
               </Link>
 
               <Link href="/register">
-                <Button>Get started</Button>
+                <Button className="group rounded-full px-5">
+                  Get started
+                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                </Button>
               </Link>
             </>
           )}
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile */}
         <div className="lg:hidden">
           <Sheet>
             <SheetTrigger
               aria-label="Open navigation menu"
-              className="inline-flex size-9 items-center justify-center rounded-lg border bg-background transition-colors hover:bg-muted"
+              className="inline-flex size-10 items-center justify-center rounded-full border bg-background transition-colors hover:bg-muted"
             >
               <Menu className="size-5" />
             </SheetTrigger>
 
-            <SheetContent side="right" className="w-[300px] sm:w-[360px]">
-              <SheetHeader>
+            <SheetContent side="right" className="w-[320px] sm:w-[380px]">
+              <SheetHeader className="border-b pb-5">
                 <SheetTitle>
                   <Logo />
                 </SheetTitle>
               </SheetHeader>
 
-              <div className="mt-8 flex flex-col gap-2">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="rounded-lg px-3 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
+              <div className="flex flex-col pt-6">
+                {/* Navigation */}
+                <nav className="flex flex-col gap-1">
+                  {navItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className="rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </nav>
 
-                <div className="mt-4 border-t pt-4">
-                  <div className="grid gap-2">
-                    <Link href="/login" className="w-full">
-                      <Button variant="outline" className="w-full">
+                {/* Find Doctor */}
+                <Link href="/doctors" className="mt-5">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-center gap-2 rounded-xl"
+                  >
+                    <Search className="size-4" />
+                    Find a Doctor
+                  </Button>
+                </Link>
+
+                {/* Auth */}
+                {!isLoading && !user && (
+                  <div className="mt-5 grid gap-2 border-t pt-5">
+                    <Link href="/login">
+                      <Button variant="outline" className="w-full rounded-xl">
                         Log in
                       </Button>
                     </Link>
 
-                    <Link href="/register" className="w-full">
-                      <Button className="w-full">Get started</Button>
+                    <Link href="/register">
+                      <Button className="w-full rounded-xl">
+                        Get started
+                        <ArrowRight className="size-4" />
+                      </Button>
                     </Link>
                   </div>
-                </div>
+                )}
+
+                {/* Mobile logged-in state */}
+                {!isLoading && user && (
+                  <div className="mt-5 border-t pt-5">
+                    <UserMenu user={user} />
+                  </div>
+                )}
               </div>
             </SheetContent>
           </Sheet>
