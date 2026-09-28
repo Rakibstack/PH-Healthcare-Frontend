@@ -12,7 +12,7 @@ import { Button } from "../ui/button";
 import { loginSchema } from "@/validation";
 import { useLogin } from "@/hooks";
 import { useRouter } from "next/navigation";
-import { toast } from "../ui/toast";
+import { toast } from "sonner";
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -38,16 +38,12 @@ export default function LoginForm() {
 
       login(loginData, {
         onSuccess: (res) => {
-          toast.add({
-            title: "Login Successfull",
-            description: "Welcome Back To PH-Healthcare.",
-            type : "success"
-          });
+          toast.success("Login User Successfully");
           router.push("/");
         },
 
         onError: (err) => {
-          console.log(err);
+          toast.error(err.message || "Somethin Went Wrong. Please try again.");
         },
       });
     },
