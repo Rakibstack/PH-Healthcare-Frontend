@@ -1,5 +1,12 @@
 import apiClient from "@/lib/apiClient";
 
+export function userRegister(payload: {
+  name: string;
+  email: string;
+  password: string;
+}) {
+  return apiClient("/auth/register", { method: "POST", body: payload });
+}
 export function userLogin(payload: { email: string; password: string }) {
   return apiClient("/auth/login", { method: "POST", body: payload });
 }
@@ -10,5 +17,5 @@ export function getMe() {
   return apiClient("/auth/me");
 }
 export function googleOAuth(payload: { idToken: string }) {
-  return apiClient("/auth/google", {method : "POST", body: payload });
+  return apiClient("/auth/google", { method: "POST", body: payload });
 }

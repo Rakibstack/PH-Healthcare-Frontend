@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff, Mail, Lock, Loader2 } from "lucide-react";
@@ -10,17 +9,16 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 
 import { loginSchema } from "@/validation";
-import { useGoogleOAuth, useLogin } from "@/hooks";
+import {  useLogin } from "@/hooks";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { GoogleLogin } from "@react-oauth/google";
+import GoogleLoginComponent from "../modules/google-login/GoogleLogin";
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   const { mutate: login, isPending } = useLogin();
-  const { mutate: googleLogin } = useGoogleOAuth();
 
   const form = useForm({
     defaultValues: {
@@ -51,28 +49,6 @@ export default function LoginForm() {
     },
   });
 
-  const handleGoogleSuccess = (credentialResponse: { credential?: string }) => {
-    const idToken = credentialResponse.credential;
-    if (!idToken) {
-      toast.error("Google OAuth Failed");
-      return;
-    }
-    googleLogin(
-      { idToken },
-      {
-        onSuccess: () => {
-          toast.success('Google Login Successfully')
-          router.push('/')
-        },
-        onError: (err) => {
-          toast.error(err.message || "Somethin Went Wrong. Please Try Again");
-        },
-      },
-    );
-  };
-  const handleGoogleFailed = () => {
-    toast.error("Something Went Wrong Please Try Again.");
-  };
 
   return (
     <form
@@ -204,38 +180,7 @@ export default function LoginForm() {
       </div>
 
       {/* Google */}
-      {/* <Button
-        type="button"
-        variant="outline"
-        className="h-11 w-full font-medium"
-      >
-        <svg viewBox="0 0 24 24" aria-hidden="true" className="size-4">
-          <path
-            fill="currentColor"
-            d="M21.35 12.23c0-.68-.06-1.34-.17-1.98H12v3.75h5.24a4.48 4.48 0 0 1-1.94 2.94v2.44h3.14c1.84-1.7 2.91-4.2 2.91-7.15Z"
-          />
-          <path
-            fill="currentColor"
-            d="M12 21.75c2.63 0 4.84-.87 6.45-2.37l-3.14-2.44c-.87.58-1.98.92-3.31.92-2.54 0-4.69-1.72-5.46-4.03H3.3v2.52A9.75 9.75 0 0 0 12 21.75Z"
-          />
-          <path
-            fill="currentColor"
-            d="M6.54 13.83a5.86 5.86 0 0 1 0-3.66V7.65H3.3a9.75 9.75 0 0 0 0 8.7l3.24-2.52Z"
-          />
-          <path
-            fill="currentColor"
-            d="M12 6.14c1.43 0 2.72.49 3.73 1.45l2.8-2.8C16.83 3.2 14.63 2.25 12 2.25A9.75 9.75 0 0 0 3.3 7.65l3.24 2.52c.77-2.31 2.92-4.03 5.46-4.03Z"
-          />
-        </svg>
-        Continue with Google
-      </Button> */}
-      <GoogleLogin
-        theme="outline"
-        shape="pill"
-        text="continue_with"
-        onSuccess={handleGoogleSuccess}
-        onError={handleGoogleFailed}
-      ></GoogleLogin>
+        <GoogleLoginComponent/>
     </form>
   );
 }
