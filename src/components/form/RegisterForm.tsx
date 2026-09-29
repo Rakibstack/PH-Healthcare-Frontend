@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { Eye, EyeOff, Mail, Lock, UserRound, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -16,6 +15,7 @@ import { useRegister } from "@/hooks";
 import GoogleLoginComponent from "../modules/google-login/GoogleLogin";
 import { registerUserSchema } from "@/validation";
 import z from "zod";
+import Link from "next/link";
 
 export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -37,7 +37,6 @@ export default function RegisterForm() {
     },
 
     onSubmit: ({ value }) => {
-
       const registerData = {
         name: value.name,
         email: value.email,
@@ -48,7 +47,8 @@ export default function RegisterForm() {
         onSuccess: () => {
           toast.success("Registration successful!");
 
-          router.push("/verify-email");
+          const params = new URLSearchParams({ email: registerData.email });
+          router.push(`/register/verify-account?${params.toString()}`);
         },
 
         onError: (err) => {
