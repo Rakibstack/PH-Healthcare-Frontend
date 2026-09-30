@@ -1,10 +1,12 @@
 
-import React from 'react';
+import HeroSection from '@/components/modules/Home/HeroSection';
+import TrustStats from '@/components/modules/Home/TrustStats';
 
 export default function HomePage() {
   return (
     <div>
-      <h2>Home Page</h2>
+      <HeroSection></HeroSection>
+      <TrustStats></TrustStats>
     </div>
   );
 }

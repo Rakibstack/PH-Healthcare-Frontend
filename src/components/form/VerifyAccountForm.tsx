@@ -1,37 +1,68 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { REGEXP_ONLY_DIGITS } from "input-otp";
+import { toast } from "sonner";
+
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { Button } from "@/components/ui/button";
-import { useRouter, useSearchParams } from "next/navigation";
-import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { useResendVerificationOtp, useVerifyAccount } from "@/hooks";
-import { toast } from "sonner";
+
+const RESEND_COOLDOWN = 120;
+
+const formatTimer = (seconds: number) => {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+
+  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+};
 
 export default function VerifyAccountForm() {
   const [otp, setOtp] = useState("");
+  const [resendTimer, setResendTimer] = useState(RESEND_COOLDOWN);
+
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const email = searchParams.get("email") || "";
-  const route = useRouter();
+
   const { mutate: verifyAccount, isPending } = useVerifyAccount();
+
   const { mutate: resendOtp, isPending: isResending } =
     useResendVerificationOtp();
 
+  // Redirect if email is missing
   useEffect(() => {
     if (!email) {
-      route.push("/");
+      router.replace("/login");
     }
-  }, [email, route]);
+  }, [email, router]);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  // Resend countdown
+  useEffect(() => {
+    if (resendTimer <= 0) {
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setResendTimer((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [resendTimer]);
+
+  // Verify OTP
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (otp.length !== 6) {
+      toast.error("Please enter the 6-digit verification code.");
       return;
     }
 
@@ -39,23 +70,36 @@ export default function VerifyAccountForm() {
       email,
       otp,
     };
+
     verifyAccount(verifyData, {
       onSuccess: () => {
-        toast.success("Verify User Account Successfully");
-        route.push("/");
+        toast.success("Your account has been verified successfully.");
+
+        router.push("/");
       },
+
       onError: (err) => {
-        toast.error(err.message || "Somethin went wrong. Please try again");
+        toast.error(err.message || "Something went wrong. Please try again.");
       },
     });
   };
-  const handleResendOtp = () => {    
+
+  const handleResendOtp = () => {
+    if (!email) {
+      toast.error("Email address is missing.");
+      return;
+    }
+
+    if (resendTimer > 0 || isResending) {
+      return;
+    }
     resendOtp(
       { email },
       {
         onSuccess: () => {
           toast.success("A new verification code has been sent.");
           setOtp("");
+          setResendTimer(RESEND_COOLDOWN);
         },
         onError: (error) => {
           toast.error(error.message || "Failed to resend verification code.");
@@ -66,6 +110,7 @@ export default function VerifyAccountForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* OTP Input */}
       <div className="flex justify-center">
         <InputOTP
           maxLength={6}
@@ -88,6 +133,7 @@ export default function VerifyAccountForm() {
         </InputOTP>
       </div>
 
+      {/* Verify Button */}
       <Button
         type="submit"
         disabled={otp.length !== 6 || isPending}
@@ -103,18 +149,23 @@ export default function VerifyAccountForm() {
         )}
       </Button>
 
+      {/* Resend OTP */}
       <div className="text-center">
         <p className="text-sm text-muted-foreground">
           Didn&apos;t receive the code?
         </p>
 
         <button
-          onClick={handleResendOtp}
-          disabled={isResending}
           type="button"
-          className="mt-1 text-sm font-medium text-primary hover:underline"
+          onClick={handleResendOtp}
+          disabled={resendTimer > 0 || isResending}
+          className="mt-1 text-sm font-medium text-primary transition-colors hover:underline disabled:cursor-not-allowed disabled:text-muted-foreground disabled:no-underline"
         >
-          Resend code
+          {isResending
+            ? "Sending..."
+            : resendTimer > 0
+              ? `Resend code in ${formatTimer(resendTimer)}`
+              : "Resend code"}
         </button>
       </div>
     </form>
