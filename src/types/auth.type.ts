@@ -7,3 +7,7 @@ export interface LoginPayload {
   email: string;
   password: string;
 }
+export interface verifyAccountpayload {
+  email: string;
+  otp: string;
+}

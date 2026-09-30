@@ -3,6 +3,7 @@ import { ArrowLeft, MailCheck } from "lucide-react";
 
 import Logo from "@/components/shared/Logo";
 import VerifyAccountForm from "@/components/form/VerifyAccountForm";
+import { Suspense } from "react";
 
 export default function VerifyAccountPage() {
   return (
@@ -34,7 +35,9 @@ export default function VerifyAccountPage() {
             </div>
 
             {/* OTP Form */}
-            <VerifyAccountForm />
+            <Suspense fallback={<p>Loading..</p>}>
+              <VerifyAccountForm />
+            </Suspense>
 
             {/* Back to login */}
             <Link
