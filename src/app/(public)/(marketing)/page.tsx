@@ -17,6 +17,7 @@ export default function HomePage() {
       <FeaturedDoctors></FeaturedDoctors>
       <WhyChooseUs></WhyChooseUs>
       <HomeClosing></HomeClosing>
+      
     </div>
   );
 }
