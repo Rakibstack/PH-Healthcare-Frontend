@@ -1,5 +1,4 @@
 "use client";
-
 import { useRef, useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import { FileText, Loader2, Upload, X } from "lucide-react";
@@ -9,8 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { applyAsDoctorZodSchema } from "@/validation/doctor.validation";
 import z from "zod";
+import { applyAsDoctorZodSchema } from "@/validation";
+import { useApplyAsDoctor } from "@/hooks/doctor.hooks";
 
 const MAX_ADDITIONAL_FILES = 5;
 
@@ -40,6 +40,7 @@ export default function ApplyDoctorForm() {
 
   const [resume, setResume] = useState<File | null>(null);
   const [additionalFiles, setAdditionalFiles] = useState<File[]>([]);
+  const { mutate: applyAsDoctor, isPending } = useApplyAsDoctor();
 
   type doctorDefaultValues = z.infer<typeof applyAsDoctorZodSchema>;
 
@@ -70,41 +71,57 @@ export default function ApplyDoctorForm() {
         toast.error("Please upload your resume or CV.");
         return;
       }
+      const doctorData = {
+        user: {
+          name: value.user.name,
+          email: value.user.email,
+        },
+        doctor: {
+          specialization: value.doctor.specialization,
+          licenseNumber: value.doctor.licenseNumber,
+          qualification: value.doctor.qualification,
+          experienceYears: value.doctor.experienceYears,
+          address: value.doctor.address ? value.doctor.address : "",
+          contactNumber: value.doctor.contactNumber
+            ? value.doctor.contactNumber
+            : "",
+          bio: value.doctor.bio ? value.doctor.bio : "",
+        },
+      };
 
-      const formData = new FormData();
-
-      formData.append("data", JSON.stringify(value));
-
-      formData.append("resume", resume);
-
-      additionalFiles.forEach((file) => {
-        formData.append("additionalFiles", file);
-      });
-
-      console.log("Application data:", value);
-      console.log("Resume:", resume);
-      console.log("Additional files:", additionalFiles);
-
-      toast.success("Doctor application submitted successfully.");
+      applyAsDoctor(
+        { data: doctorData, resume, additionalFiles },
+        {
+          onSuccess: () => {
+            toast.success("Doctor application submitted successfully.");
+          },
+          onError: (err) => {
+            toast.error(
+              err.message || "Something went wrong. Please try again.",
+            );
+          },
+        },
+      );
     },
   });
 
+  const MAX_FILE_SIZE_MB = 5;
+  const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024; // Convert MB to bytes
+  const allowedTypes = [
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "image/png",
+    "image/jpeg",
+  ];
+
   const handleResumeChange = (file?: File) => {
-    const MAX_FILE_SIZE_MB = 5;
     if (!file) return;
 
-    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+    if (file.size > MAX_FILE_SIZE) {
       toast.error(`File size exceeds ${MAX_FILE_SIZE_MB} MB limit.`);
       return;
     }
-
-    const allowedTypes = [
-      "application/pdf",
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "image/png",
-      "image/jpeg",
-    ];
 
     if (!allowedTypes.includes(file.type)) {
       toast.error("Please upload a PDF, DOC, or DOCX resume.");
@@ -127,14 +144,68 @@ export default function ApplyDoctorForm() {
 
     const selectedFiles = Array.from(files);
 
-    if (selectedFiles.length + additionalFiles.length > MAX_ADDITIONAL_FILES) {
+    const validFiles: File[] = [];
+
+    for (const file of selectedFiles) {
+      if (!allowedTypes.includes(file.type)) {
+        toast.error(
+          `${file.name} is not a supported file type. Please upload PDF, DOC, or DOCX.`,
+        );
+        continue;
+      }
+
+      // File size validation
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(`${file.name} is too large. Maximum file size is 5 MB.`);
+        continue;
+      }
+
+      // Duplicate validation
+      const isDuplicate =
+        additionalFiles.some(
+          (existingFile) =>
+            existingFile.name === file.name &&
+            existingFile.size === file.size &&
+            existingFile.lastModified === file.lastModified,
+        ) ||
+        validFiles.some(
+          (existingFile) =>
+            existingFile.name === file.name &&
+            existingFile.size === file.size &&
+            existingFile.lastModified === file.lastModified,
+        );
+
+      if (isDuplicate) {
+        toast.error(`${file.name} has already been selected.`);
+        continue;
+      }
+
+      validFiles.push(file);
+    }
+
+    // Maximum number of files validation
+    const remainingSlots = MAX_ADDITIONAL_FILES - additionalFiles.length;
+
+    if (remainingSlots <= 0) {
       toast.error(
         `You can upload up to ${MAX_ADDITIONAL_FILES} additional files.`,
       );
       return;
     }
 
-    setAdditionalFiles((previous) => [...previous, ...selectedFiles]);
+    const filesToAdd = validFiles.slice(0, remainingSlots);
+
+    if (validFiles.length > remainingSlots) {
+      toast.error(
+        `You can upload only ${remainingSlots} more file${
+          remainingSlots > 1 ? "s" : ""
+        }.`,
+      );
+    }
+
+    if (filesToAdd.length > 0) {
+      setAdditionalFiles((previous) => [...previous, ...filesToAdd]);
+    }
   };
 
   const removeAdditionalFile = (index: number) => {
