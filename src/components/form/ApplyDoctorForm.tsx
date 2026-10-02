@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-
-// import { applyAsDoctorZodSchema } from "@/validation/doctor.validation";
+import { applyAsDoctorZodSchema } from "@/validation/doctor.validation";
+import z from "zod";
 
 const MAX_ADDITIONAL_FILES = 5;
 
@@ -41,26 +41,28 @@ export default function ApplyDoctorForm() {
   const [resume, setResume] = useState<File | null>(null);
   const [additionalFiles, setAdditionalFiles] = useState<File[]>([]);
 
-  const form = useForm({
-    defaultValues: {
-      user: {
-        name: "",
-        email: "",
-      },
+  type doctorDefaultValues = z.infer<typeof applyAsDoctorZodSchema>;
 
-      doctor: {
-        specialization: "",
-        licenseNumber: "",
-        qualification: "",
-        experienceYears: 0,
-        address: "",
-        contactNumber: "",
-        bio: "",
-      },
+  const defaultValues: doctorDefaultValues = {
+    user: {
+      name: "",
+      email: "",
     },
+    doctor: {
+      specialization: "",
+      licenseNumber: "",
+      qualification: "",
+      experienceYears: 0,
+      address: "",
+      contactNumber: "",
+      bio: "",
+    },
+  };
 
+  const form = useForm({
+    defaultValues,
     validators: {
-      //   onSubmit: applyAsDoctorZodSchema,
+      onSubmit: applyAsDoctorZodSchema,
     },
 
     onSubmit: async ({ value }) => {
@@ -87,17 +89,21 @@ export default function ApplyDoctorForm() {
     },
   });
 
-  // ---------------------------------------
-  // Resume
-  // ---------------------------------------
-
   const handleResumeChange = (file?: File) => {
+    const MAX_FILE_SIZE_MB = 5;
     if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+      toast.error(`File size exceeds ${MAX_FILE_SIZE_MB} MB limit.`);
+      return;
+    }
 
     const allowedTypes = [
       "application/pdf",
       "application/msword",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "image/png",
+      "image/jpeg",
     ];
 
     if (!allowedTypes.includes(file.type)) {
@@ -115,10 +121,6 @@ export default function ApplyDoctorForm() {
       resumeInputRef.current.value = "";
     }
   };
-
-  // ---------------------------------------
-  // Additional files
-  // ---------------------------------------
 
   const handleAdditionalFiles = (files: FileList | null) => {
     if (!files) return;
@@ -151,10 +153,6 @@ export default function ApplyDoctorForm() {
       }}
       className="space-y-10"
     >
-      {/* =========================================
-          Applicant Information
-      ========================================== */}
-
       <section>
         <div className="mb-5">
           <h3 className="text-base font-semibold">Applicant information</h3>
@@ -425,7 +423,7 @@ export default function ApplyDoctorForm() {
 
                   <div className="flex justify-end">
                     <span className="text-xs text-muted-foreground">
-                      {field.state.value.length}/1000
+                      {field.state.value?.length}/1000
                     </span>
                   </div>
 
@@ -470,7 +468,7 @@ export default function ApplyDoctorForm() {
             <input
               ref={resumeInputRef}
               type="file"
-              accept=".pdf,.doc,.docx"
+              accept=".pdf,.doc,.docx,image/png,image/jpeg"
               className="hidden"
               onChange={(event) => {
                 handleResumeChange(event.target.files?.[0]);
