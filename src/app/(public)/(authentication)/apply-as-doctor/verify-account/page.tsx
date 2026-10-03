@@ -1,3 +1,4 @@
+
 import Link from "next/link";
 import { ArrowLeft, MailCheck } from "lucide-react";
 
@@ -5,7 +6,7 @@ import Logo from "@/components/shared/Logo";
 import VerifyAccountForm from "@/components/form/VerifyAccountForm";
 import { Suspense } from "react";
 
-export default function VerifyAccountPage() {
+export default function VerifyDoctorAccountPage() {
   return (
     <main className="min-h-svh bg-background">
       <div className="mx-auto flex min-h-svh w-full max-w-xl flex-col px-6 py-8 sm:px-8">
@@ -36,7 +37,7 @@ export default function VerifyAccountPage() {
 
             {/* OTP Form */}
             <Suspense fallback={<p>Loading..</p>}>
-              <VerifyAccountForm mode="patient" />
+              <VerifyAccountForm mode="doctor" />
             </Suspense>
 
             {/* Back to login */}

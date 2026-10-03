@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/input-otp";
 import { Button } from "@/components/ui/button";
 import { useResendVerificationOtp, useVerifyAccount } from "@/hooks";
+import { useVerifyDoctorAccount } from "@/hooks/doctor.hooks";
 
 const RESEND_COOLDOWN = 120;
 
@@ -23,7 +24,11 @@ const formatTimer = (seconds: number) => {
   return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 };
 
-export default function VerifyAccountForm() {
+export default function VerifyAccountForm({
+  mode,
+}: {
+  mode: "doctor" | "patient";
+}) {
   const [otp, setOtp] = useState("");
   const [resendTimer, setResendTimer] = useState(RESEND_COOLDOWN);
 
@@ -32,8 +37,10 @@ export default function VerifyAccountForm() {
 
   const email = searchParams.get("email") || "";
 
-  const { mutate: verifyAccount, isPending } = useVerifyAccount();
-
+  const { mutate: verifyPatientAccount, isPending } = useVerifyAccount();
+  const { mutate: verifyDoctorAccount } = useVerifyDoctorAccount();
+  const verifyAccount =
+    mode === "doctor" ? verifyDoctorAccount : verifyPatientAccount;
   const { mutate: resendOtp, isPending: isResending } =
     useResendVerificationOtp();
 
@@ -73,8 +80,15 @@ export default function VerifyAccountForm() {
 
     verifyAccount(verifyData, {
       onSuccess: () => {
-        toast.success("Your account has been verified successfully.");
+        if (mode === "doctor") {
+          toast.success(
+            "Your doctor account has been verified successfully. wait for the admin approval.",
+          );
+          router.push("/");
 
+          return;
+        }
+        toast.success("Your account has been verified successfully.");
         router.push("/");
       },
 

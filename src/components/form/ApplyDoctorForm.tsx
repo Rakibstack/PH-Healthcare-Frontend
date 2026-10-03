@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import z from "zod";
 import { applyAsDoctorZodSchema } from "@/validation";
 import { useApplyAsDoctor } from "@/hooks/doctor.hooks";
+import { useRouter } from "next/navigation";
 
 const MAX_ADDITIONAL_FILES = 5;
 
@@ -40,7 +41,8 @@ export default function ApplyDoctorForm() {
 
   const [resume, setResume] = useState<File | null>(null);
   const [additionalFiles, setAdditionalFiles] = useState<File[]>([]);
-  const { mutate: applyAsDoctor, isPending } = useApplyAsDoctor();
+  const { mutate: applyAsDoctor, isPending: isApplyingAsDoctor } = useApplyAsDoctor();
+  const router = useRouter();
 
   type doctorDefaultValues = z.infer<typeof applyAsDoctorZodSchema>;
 
@@ -89,11 +91,13 @@ export default function ApplyDoctorForm() {
         },
       };
 
+      const params = new URLSearchParams({email: doctorData.user.email});
       applyAsDoctor(
         { data: doctorData, resume, additionalFiles },
         {
           onSuccess: () => {
             toast.success("Doctor application submitted successfully.");
+            router.push(`/apply-as-doctor/verify-account?${params.toString()}`);
           },
           onError: (err) => {
             toast.error(
@@ -677,9 +681,9 @@ export default function ApplyDoctorForm() {
           type="submit"
           size="lg"
           className="h-11 w-full"
-          disabled={form.state.isSubmitting}
+          disabled={isApplyingAsDoctor}
         >
-          {form.state.isSubmitting ? (
+          {isApplyingAsDoctor ? (
             <>
               <Loader2 className="size-4 animate-spin" />
               Submitting application...
