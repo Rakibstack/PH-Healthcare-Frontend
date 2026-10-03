@@ -1,6 +1,5 @@
-
 import Link from "next/link";
-import { ArrowLeft, MailCheck } from "lucide-react";
+import { ArrowLeft, Loader2, MailCheck } from "lucide-react";
 
 import Logo from "@/components/shared/Logo";
 import VerifyAccountForm from "@/components/form/VerifyAccountForm";
@@ -36,7 +35,16 @@ export default function VerifyDoctorAccountPage() {
             </div>
 
             {/* OTP Form */}
-            <Suspense fallback={<p>Loading..</p>}>
+            <Suspense
+              fallback={
+                <div className="flex min-h-[300px] items-center justify-center">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="size-4 animate-spin" />
+                    Loading verification...
+                  </div>
+                </div>
+              }
+            >
               <VerifyAccountForm mode="doctor" />
             </Suspense>
 

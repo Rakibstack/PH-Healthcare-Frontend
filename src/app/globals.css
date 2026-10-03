@@ -59,6 +59,20 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+@keyframes loading {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  50% {
+    transform: translateX(100%);
+  }
+
+  100% {
+    transform: translateX(220%);
+  }
+}
+
 :root {
   --background: oklch(0.99 0.003 285);
   --foreground: oklch(0.16 0.015 285);
