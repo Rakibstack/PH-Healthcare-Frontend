@@ -9,14 +9,21 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 
 import { loginSchema } from "@/validation";
-import {  useLogin } from "@/hooks";
-import { useRouter } from "next/navigation";
+import { useLogin } from "@/hooks";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import GoogleLoginComponent from "../modules/google-login/GoogleLogin";
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectParam = searchParams.get("redirect");
+
+  const redirect =
+    redirectParam?.startsWith("/") && !redirectParam.startsWith("//")
+      ? redirectParam
+      : "/";
 
   const { mutate: login, isPending } = useLogin();
 
@@ -39,7 +46,7 @@ export default function LoginForm() {
       login(loginData, {
         onSuccess: () => {
           toast.success("Login User Successfully");
-          router.push("/");
+          router.replace(redirect);
         },
 
         onError: (err) => {
@@ -48,7 +55,6 @@ export default function LoginForm() {
       });
     },
   });
-
 
   return (
     <form
@@ -180,7 +186,7 @@ export default function LoginForm() {
       </div>
 
       {/* Google */}
-        <GoogleLoginComponent/>
+      <GoogleLoginComponent />
     </form>
   );
 }

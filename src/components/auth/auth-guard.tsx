@@ -3,6 +3,7 @@
 import { useCurrentUser } from "@/hooks";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import AuthLoading from "../shared/AuthLoading";
 
 export const AuthGuard = ({ children }: { children: React.ReactNode }) => {
   const { data, isPending, isError } = useCurrentUser();
@@ -18,7 +19,15 @@ export const AuthGuard = ({ children }: { children: React.ReactNode }) => {
     if (!user || isError) {
       router.replace("/login");
     }
-  }, [isError, isPending,router, user]);
+  }, [isError, isPending, router, user]);
+
+  if (isPending) {
+    return <AuthLoading />;
+  }
+
+  if (isError || !user) {
+    return null;
+  }
 
   return <>{children}</>;
 };
