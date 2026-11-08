@@ -45,7 +45,7 @@ export default function RegisterForm() {
 
       registerUser(registerData, {
         onSuccess: () => {
-          toast.success("Registration successful!");
+          toast.success("Registration successful Please check your email for verification.");
 
           const params = new URLSearchParams({ email: registerData.email });
           router.push(`/register/verify-account?${params.toString()}`);

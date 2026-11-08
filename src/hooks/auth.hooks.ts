@@ -1,7 +1,9 @@
 import {
+  forgotPassword,
   getMe,
   googleOAuth,
   resendVerificationOtp,
+  resetPassword,
   userLogin,
   userLogout,
   userRegister,
@@ -28,6 +30,16 @@ export function useResendVerificationOtp() {
 export function useLogin() {
   return useMutation({
     mutationFn: userLogin,
+  });
+}
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: forgotPassword,
+  });
+}
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: resetPassword,
   });
 }
 export function useLogout() {
